@@ -1,8 +1,31 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { toggleMenu } from '../utils/appSlice';
+import { YOUTUBE_SEARCH_API } from '../utils/constant';
 
 const Head = () => { 
+  const [serchQuery,setsearchQuery]=useState("");
+  const [suggesition,setsuggesition]=useState([]);
+  const [showsuggesion,setshowsuggesion]=useState(false);
+
+  useEffect(()=>{
+     const timer=setTimeout(() => getSearchSugestions(),200)
+    
+     return ()=>{
+      clearTimeout(timer)
+     }
+
+  },[serchQuery])
+
+  const getSearchSugestions = async ()=>{
+    console.log('api call'+serchQuery)
+    const data = await fetch(YOUTUBE_SEARCH_API + serchQuery)
+    const json=await data.json()
+    // console.log(json[1])
+    setsuggesition(json[1])
+  }
+
+
   const dispatch=useDispatch();
   const toggleMenuHandler=()=>{
     dispatch(toggleMenu())
@@ -22,10 +45,22 @@ const Head = () => {
         </a>
         </div>
         <div className='col-span-10 px-15'>     
-            <input  className='w-1/2 border border-gray-400 p-1 rounded-l-full'
-            type='text'/>
-            <button className='border border-gray-400 px-5 py-1 rounded-r-full bg-gray-200'
+            <div>
+            <input  className='w-1/2 border border-gray-400 px-1 rounded-l-full'
+            type='text'
+            value={serchQuery}
+            onChange={(e)=>setsearchQuery(e.target.value)}
+            onFocus={()=>setshowsuggesion(true)}
+            onBlur={()=>setshowsuggesion(false)}
+            />
+            <button className='border border-gray-400 px-4 py-0.3 rounded-r-full bg-gray-200'
             >🔍</button>
+            </div>
+            {showsuggesion && (<div className='fixed bg-white py-2 px-2 w-[30rem] shadow-lg rounded-lg border-gray-100'>
+              <ul>
+                {suggesition.map((s)=>(<li key={s} className='py-1 px-1 shadow-sm hover:bg-gray-300 rounded-lg'>🔍{s}</li>))}
+              </ul>
+            </div>)}
         </div>
         <div>
             <img className='h-8'
